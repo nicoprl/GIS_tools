@@ -1,0 +1,104 @@
+{  
+   "title":"Leaflet Generator - map",
+   "outputFileName":"multi.html",
+   "mapWidth": "500px",
+   "mapHeight": "700px",
+   "center":{  
+      "lat":45.751498,
+      "lng":4.828184,
+      "zoom":15
+   },
+   "geojsonConfig":[
+      {  
+         "name": "Place Carnot",
+         "addToMap":true,
+         "geojsonFile":false,
+         "geojsonFilePath":"",
+         "geometry":{  
+            "type":"FeatureCollection",
+            "features":[  
+               {  
+                  "type":"Feature",
+                  "properties":{  
+
+                  },
+                  "geometry":{  
+                     "type":"Polygon",
+                     "coordinates":[  
+                        [  
+                           [  
+                              4.826173782348632,
+                              45.75144473708562
+                           ],
+                           [  
+                              4.828813076019287,
+                              45.75074102179696
+                           ],
+                           [  
+                              4.829306602478027,
+                              45.75265750218635
+                           ],
+                           [  
+                              4.826173782348632,
+                              45.75144473708562
+                           ]
+                        ]
+                     ]
+                  }
+               }
+            ]
+         },
+         "geojsonStyle":{  
+            "color":"red",
+            "weight":4,
+            "opacity":0.7,
+            "fill":true,
+            "fillColor":"green",
+            "fillOpacity":0.2
+         }
+      },
+      {
+        "name": "Margeriaz",
+        "addToMap":false,
+        "geojsonFile": true,
+        "geojsonFilePath":"margeriaz.geojson",
+        "geometry": "",
+        "geojsonStyle":{
+          "color": "black",
+          "weight": 5,
+          "opacity":0.7,
+          "fill":false,
+          "fillColor":"green",
+          "fillOpacity":0.2
+        }
+      }
+   ],
+   "tileLayerConfig":[  
+      {  
+         "name": "OpenTopoMap",
+         "addToMap":false,
+         "url":"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+         "attribution":"Map data: &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, <a href=\"http://viewfinderpanoramas.org\">SRTM</a> | Map style: &copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+      },
+      {
+        "name": "OSM light",
+        "addToMap":true,
+        "url": "https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png",
+        "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+      }
+   ],
+   "wmsConfig":[
+      {  
+         "name": "Silos à verre",
+         "addToMap":false,
+         "url":"https://download.data.grandlyon.com/wms/grandlyon",
+         "layers":"gic_collecte.gicsiloverre"
+      },
+      {
+         "name": "Stations Vélo'v",
+         "addToMap":true,
+         "url":"https://download.data.grandlyon.com/wms/grandlyon",
+         "layers": "pvo_patrimoine_voirie.pvostationvelov"
+      }
+   ]
+}

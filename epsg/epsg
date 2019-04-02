@@ -1,0 +1,164 @@
+#!/usr/bin/python3
+
+import sys
+import argparse
+
+try:
+    import fiona
+    from fiona import collection
+    from fiona.crs import from_epsg
+except ImportError as e:
+    print('Error importing fiona')
+    print(e)
+    sys.exit(1)
+
+try:
+    import shapely
+    from shapely.geometry import Point, LineString, Polygon, box, mapping
+    from shapely.wkt import dumps, loads
+except ImportError as e:
+    print('Error importing shapely')
+    print(e)
+    sys.exit(1)
+
+class Epsg:
+    projs = {
+        "4326": {"country": "World", "name": "WGS 84", "bbox": [-180.0000, -90.0000, 180.0000, 90.0000]},
+        "4171": {"country": "France", "name": "RGF93", "bbox": [-9.6200, 41.1800, 10.3000, 51.5400]},
+        "2154": {"country": "France", "name": "RGF 93 / Lambert 93", "bbox": [-357823.2365, 6037008.6939, 1313632.3628, 7230727.3772]},
+        "3942": {"country": "France", "name": "RGF 93 / CC42", "bbox": [1296335.9393, 1100257.6521, 2254779.1544, 1331811.4895]},
+        "3943": {"country": "France", "name": "RGF 93 / CC43", "bbox": [1302506.4384, 2100044.3184, 2093357.4402, 2322094.8666]},
+        "3944": {"country": "France", "name": "RGF 93 / CC44", "bbox": [1308798.4230, 3100052.0968, 2087131.0906, 3322128.5732]},
+        "3945": {"country": "France", "name": "RGF 93 / CC45", "bbox": [1351247.6083, 4098245.7319, 2080786.3812, 4321920.5102]},
+        "3946": {"country": "France", "name": "RGF 93 / CC46", "bbox": [1270591.6480, 5097385.5589, 2027087.9253, 5325334.0729]},
+        "3947": {"country": "France", "name": "RGF 93 / CC47", "bbox": [1112163.1498, 6100231.0759, 2071615.7622, 6338667.6413]},
+        "3948": {"country": "France", "name": "RGF 93 / CC48", "bbox": [1092603.2215, 7102517.8254, 2100529.4893, 7341541.8099]},
+        "3949": {"country": "France", "name": "RGF 93 / CC49", "bbox": [1104062.1794, 8102449.7137, 2092985.7591, 8341410.9019]},
+        "3950": {"country": "France", "name": "RGF 93 / CC50", "bbox": [1338040.0982, 9100766.7009, 2085321.7705, 9324263.6899]},
+        "27562": {"country": "France", "name": "NTF (Paris) / Lambert Centre France", "bbox": [50198.0586, 64100.6841, 1016966.9382, 373525.1009]},
+        "27563": {"country": "France", "name": "NTF (Paris) / Lambert Sud France", "bbox": [262373.4731, 11755.1415, 1047663.1958, 364038.4062]},
+        "27564": {"country": "France", "name": "NTF (Paris) / Lambert Corse", "bbox": [501997.4013, 111734.6001, 607585.0937, 309328.6374]},
+        "27571": {"country": "France", "name": "NTF (Paris) / Lambert zone I", "bbox": [40063.0848, 1067022.9279, 1038149.3679, 1404377.9733]},
+        "27572": {"country": "France", "name": "NTF (Paris) / Lambert zone II", "bbox": [-22841.3905, 1712212.6192, 1087335.9605, 2703971.1254]},
+        "27573": {"country": "France", "name": "NTF (Paris) / Lambert zone III", "bbox": [262373.4731, 3011755.1415, 1047663.1958, 3364038.4062]},
+        "27574": {"country": "France", "name": "NTF (Paris) / Lambert zone IV", "bbox": [501997.4013, 4111734.6001, 607585.0937, 4309328.6374]}
+    }
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def validate(self):
+        if (
+            type(self.x) == float and type(self.y) == float
+        ) or (
+            type(self.x) == int and type(self.y) == int
+        ):
+            return True
+        else:
+            return False
+
+    def guessEPSG(self):
+        founds = []
+        for epsg, definition in Epsg.projs.items():
+            xmin, ymin, xmax, ymax = definition["bbox"]
+            if (
+                int(self.x) in range(int(xmin),int(xmax))
+            ) and (
+                int(self.y) in range(int(ymin),int(ymax))
+            ):
+                founds.append(epsg)
+        return founds
+
+class GetInfos():
+    def __init__(self, inputfn):
+        self.inputfn = inputfn
+
+    def getCenterCoordinates(self):
+        with fiona.Env():
+            try:
+                fiona.open(self.inputfn)
+            except fiona.errors.DriverError as e:
+                print(e)
+                sys.exit(1)
+            else:
+                with fiona.open(self.inputfn) as source:
+                    minx, miny, maxx, maxy = source.bounds
+                    polygon = box(minx, miny, maxx, maxy)
+                    return polygon.centroid.x, polygon.centroid.y
+
+    def getMetadata(self):
+        with fiona.Env():
+            try:
+                fiona.open(self.inputfn)
+            except fiona.errors.DriverError as e:
+                print(e)
+                sys.exit(1)
+            else:
+                with fiona.open(self.inputfn) as source:
+                    try:
+                        featureCount = len(source)
+                        bbox = source.bounds
+                        wkt_proj = source.crs_wkt
+                        proj4_proj = source.crs
+                        driver = source.driver
+                        meta = source.meta
+                        geomType = meta["schema"]["geometry"]
+                        champs = meta["schema"]["properties"]
+
+                        return featureCount, geomType, bbox, driver, meta, champs
+                    except Exception as e:
+                        print(e)
+                        sys.exit(1)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", help="path to OGR file")
+    parser.add_argument("-c", help="Coordinates (x,y). Ex: -c 45.771074,4.834324")
+    args = parser.parse_args()
+
+    if args.f is not None:
+        myfile = GetInfos(args.f)
+        x, y = myfile.getCenterCoordinates()
+    elif args.c is not None:
+        try:
+            x = float(args.c.split(',')[0])
+            y = float(args.c.split(',')[1])
+        except Exception as e:
+            print('Error, check -c syntax (ex: -c 45.771074,4.834324)')
+            print(e)
+            sys.exit(1)
+    else:
+        print('Error, no argument provided')
+        parser.print_help()
+        sys.exit(1)
+
+    coords = Epsg(x, y)
+    if coords.validate():
+         epsgs = coords.guessEPSG()
+    else:
+        print('Invalid coordinates')
+        sys.exit(1)
+
+    if len(epsgs) == 0:
+        print('No match found in projs dict')
+    else:
+        print('Possible EPSG code(s):')
+        for epsg in epsgs:
+            print('{0}: {1} ({2})'.format(
+                epsg, coords.projs[epsg]["name"], coords.projs[epsg]["country"]
+            ))
+
+    if args.f is not None:
+        print()
+        featureCount, geomType, bbox, driver, meta, champs = myfile.getMetadata()
+        print('Driver: ', driver)
+        print('Geom type: ', geomType)
+        print('Count: ', featureCount)
+        print('Bbox: ', bbox, '\n')
+
+        for key, value in champs.items():
+            print(key, value)
+
+if __name__ == '__main__':
+    main()
