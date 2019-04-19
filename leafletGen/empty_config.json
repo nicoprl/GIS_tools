@@ -1,0 +1,14 @@
+{  
+    "title":"Created with leafletGen",
+    "outputFileName":"map.html",
+    "mapWidth": "500px",
+    "mapHeight": "700px",
+    "center":{  
+       "lat":45.751498,
+       "lng":4.828184,
+       "zoom":15
+    },
+    "geojsonConfig":[],
+    "tileLayerConfig":[],
+    "wmsConfig": []
+ }

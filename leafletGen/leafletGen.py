@@ -35,6 +35,7 @@ def main():
 
         print(config["outputFileName"], 'generated in', args.destFolder)
     except Exception as e:
+        print(e)
         print(traceback.print_exc())
 
 def baseMapsBlock(baseMaps):

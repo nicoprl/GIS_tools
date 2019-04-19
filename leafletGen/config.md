@@ -1,4 +1,56 @@
-{  
+# JSON config file
+
+## Map  
+`title`: title of the map  
+`outputFileName`: name of html file  
+`mapWidth` : map width, in pixel (px)  
+`mapHeight`: map height, in pixel (px)  
+`center`: lat and lng of central point of the map  
+
+    `"center":{  
+        "lat":45.751498,
+        "lng":4.828184,
+        "zoom":15
+    }` 
+
+## geojsonConfig  
+`name`: name of the GeoJSON layer  
+`addToMap`: display layer by default. Boolean  
+`geojsonFilePath`: path to GeoJSON file  
+`geometry`: geometry in GeoJSON format. Not to be used if geojsonFilePath is provided  
+`geojsonStyle`: GeoJSON layer symbology  
+
+`"geojsonStyle":{  
+    "color":"red",
+    "weight":4,
+    "opacity":0.7,
+    "fill":true,
+    "fillColor":"green",
+    "fillOpacity":0.2
+}`
+
+## tileLayerConfig  
+`name`: name of the tileLayer  
+`addToMap`: display layer by default. Boolean  
+`url`: url of the tile service  
+`attribution`: attribution  
+
+`{  
+    "name": "OpenTopoMap",
+    "addToMap":false,
+    "url":"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    "attribution":"Map data: [...]"
+}`
+
+## wmsConfig  
+`name`: name of the WMS layer  
+`addToMap`: display layer by default. Boolean  
+`url`: url of the WMS service  
+`layers`: layers to display  
+
+# Full exemple
+
+`{  
    "title":"Leaflet Generator - map",
    "outputFileName":"multi.html",
    "mapWidth": "500px",
@@ -98,4 +150,4 @@
          "layers": "pvo_patrimoine_voirie.pvostationvelov"
       }
    ]
-}
+}`
