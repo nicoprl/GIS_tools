@@ -7,11 +7,13 @@
 `mapHeight`: map height, in pixel (px)  
 `center`: lat and lng of central point of the map  
 
-    `"center":{  
-        "lat":45.751498,
-        "lng":4.828184,
-        "zoom":15
-    }` 
+```json
+"center":{  
+    "lat":45.751498,
+    "lng":4.828184,
+    "zoom":15
+}
+```
 
 ## geojsonConfig  
 `name`: name of the GeoJSON layer  
@@ -20,14 +22,16 @@
 `geometry`: geometry in GeoJSON format. Not to be used if geojsonFilePath is provided  
 `geojsonStyle`: GeoJSON layer symbology  
 
-`"geojsonStyle":{  
+```json
+"geojsonStyle":{  
     "color":"red",
     "weight":4,
     "opacity":0.7,
     "fill":true,
     "fillColor":"green",
     "fillOpacity":0.2
-}`
+}
+```
 
 ## tileLayerConfig  
 `name`: name of the tileLayer  
@@ -35,12 +39,14 @@
 `url`: url of the tile service  
 `attribution`: attribution  
 
-`{  
+```json
+{  
     "name": "OpenTopoMap",
     "addToMap":false,
     "url":"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
     "attribution":"Map data: [...]"
-}`
+} 
+```
 
 ## wmsConfig  
 `name`: name of the WMS layer  
@@ -49,8 +55,8 @@
 `layers`: layers to display  
 
 # Full exemple
-
-`{  
+```json
+{  
    "title":"Leaflet Generator - map",
    "outputFileName":"multi.html",
    "mapWidth": "500px",
@@ -127,13 +133,13 @@
          "name": "OpenTopoMap",
          "addToMap":false,
          "url":"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-         "attribution":"Map data: &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, <a href=\"http://viewfinderpanoramas.org\">SRTM</a> | Map style: &copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+         "attribution":"[...]"
       },
       {
         "name": "OSM light",
         "addToMap":true,
         "url": "https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png",
-        "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+        "attribution": "[...]"
       }
    ],
    "wmsConfig":[
@@ -150,4 +156,5 @@
          "layers": "pvo_patrimoine_voirie.pvostationvelov"
       }
    ]
-}`
+}
+```
