@@ -28,6 +28,7 @@ def getGeom(inputfn, epsg):
        - booleen à True si toutes les geom sont valides
        - l'epsg source s'il a pu être détecté
     """
+    print("Récupération des géometries")
     polygonGeoms = []
     all_valid = True
     with fiona.Env():
@@ -71,6 +72,8 @@ def debug_dumpPoligons(polygons, inputfn, source_epsg):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
+    print("Ecriture des fichiers dans", output_dir)
+
     i = 0
     with fiona.collection(
         output_dir + '/SPLITTED_' + inputfn, 
@@ -99,6 +102,8 @@ def debug_dumpPoligons(polygons, inputfn, source_epsg):
                 'geometry': geom_transform
             })
             i += 1
+
+    print(i, "fichiers GeoJSON créés")
 
 
 def splitPolygon(geom, maxsurface, targetListVar):

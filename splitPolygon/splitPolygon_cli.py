@@ -48,10 +48,13 @@ def main():
     goodPolygons = []
 
     # split des polygones, incrémentation de goodPolygons
-    splitPolygon(polygonGeom[0], int(args.surface_max), goodPolygons)
+    for poly in polygonGeom:
+        splitPolygon(poly, int(args.surface_max), goodPolygons)
 
     # écriture du SHP de sortie avec goodPolygons
     debug_dumpPoligons(goodPolygons, args.shp, source_epsg)
+
+    print("Fin du traitement")
 
 if __name__ == '__main__':
     main()
