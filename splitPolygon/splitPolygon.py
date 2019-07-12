@@ -1,9 +1,13 @@
 #!/usr/bin/python3.6
 
+import os
 import sys
+import logging
+import argparse
 
 try:
     import fiona
+    from fiona.transform import transform_geom
 except ImportError:
     print('ImportError fiona')
     sys.exit(1)
@@ -17,27 +21,45 @@ except ImportError:
     print('ImportError shapely')
     sys.exit(1)
 
-"""
-polygone en entrée
-calcul de sa bbox
-calcul de son orientation
-calcul des points A et B de la droite séquante
-création de la géometrie Line
-création des polygones par coupe
-"""
 
-def getGeom(inputfn):
+def getGeom(inputfn, epsg):
+    """Retourne:
+       - géometrie de inputfn
+       - booleen à True si toutes les geom sont valides
+       - l'epsg source s'il a pu être détecté
+    """
     polygonGeoms = []
+    all_valid = True
     with fiona.Env():
         with fiona.open(inputfn) as source:
+            if len(source.crs) > 0:
+                source_epsg = source.crs
+            elif epsg is not None:
+                source_epsg = {'init': 'epsg:' + epsg}
+            else:
+                print("Aucun fichier prj détecté et/ou aucune projection source passée avec -epsg")
+                sys.exit(1)
+
+            if source_epsg['init'] == 'epsg:4326':
+                print("Le SHP d'origne doit être dans une projection en mètre")
+                print("détecté:", source_epsg)
+                sys.exit(1)
+
             items = source.items()
             for key, value in items:
                 geom = shape(value["geometry"])
+                if not geom.is_valid:
+                    all_valid = False
                 polygonGeoms.append(geom)
 
-            return polygonGeoms
+            return polygonGeoms, all_valid, source_epsg
 
-def debug_dumpPoligons(polygons):
+
+def debug_dumpPoligons(polygons, inputfn, source_epsg):
+    """Créé dans un nouveau dossier du même nom que le SHP d'entrée
+       un nouveau SHP résultat de la découpe et autant de GeoJSON
+       en EPSG:4326 que d'entitées créés
+    """
     schema = {
         'geometry': 'Polygon',
         'properties': {
@@ -45,8 +67,15 @@ def debug_dumpPoligons(polygons):
         }
     }
 
+    output_dir = './SPLITTED_' +  os.path.splitext(inputfn)[0]
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     i = 0
-    with fiona.collection('dump_polygons.shp', 'w', 'ESRI Shapefile', schema) as output:
+    with fiona.collection(
+        output_dir + '/SPLITTED_' + inputfn, 
+        'w', 'ESRI Shapefile', schema
+    ) as output:
         for polygon in polygons:
             output.write({
                 'properties': {
@@ -56,7 +85,32 @@ def debug_dumpPoligons(polygons):
             })
             i += 1
 
+    i = 0
+    for polygon in polygons:
+        geom_transform = transform_geom(source_epsg, "EPSG:4326", mapping(polygon))
+        with fiona.collection(
+            output_dir + '/' + str(i) + '.geojson', 
+            'w', 'GeoJSON', schema
+        ) as output:
+            output.write({
+                'properties': {
+                    'polygoneid': i
+                },
+                'geometry': geom_transform
+            })
+            i += 1
+
+
 def splitPolygon(geom, maxsurface, targetListVar):
+    """
+    polygone en entrée
+    calcul de sa bbox
+    calcul de son orientation
+    calcul des points A et B de la droite séquante
+    création de la géometrie Line
+    création des deux "boites" de part et d'autre de la bbox
+    création des polygones par intersection entre chaque boite et la geom
+    """
     # bbox
     xmin, ymin, xmax, ymax = geom.bounds
 

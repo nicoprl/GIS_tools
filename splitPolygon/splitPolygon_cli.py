@@ -12,31 +12,46 @@ création des polygones par coupe
 """
 
 def main():
-    # message d'erreur et print de la doc s'il manque des args
-    if len(sys.argv) < 3:
-        print('ERREUR: un ou plusieurs arguments manquants')
-        doc()
+    # afficher tous les niveaux de log de fiona/shapely
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    log.addHandler(stream_handler)
+
+    # gestion des arguments
+    parser = argparse.ArgumentParser(
+        description='Split un SHP polygone en entités avec S < surface_max'
+    )
+    parser.add_argument('shp', help='SHP en entrée')
+    parser.add_argument('surface_max', help='surface maximale des polygones (en ha)')
+    parser.add_argument('-epsg', help='EPSG de la donnée source si pas de .prj')
+    parser.add_argument(
+        '--forceinvalid',
+        action='store_true',
+        help='Procéder au découpage même si erreurs de topologie sont détectées'
+    )
+    args = parser.parse_args()
+
+    # geom du polygone à découper, booleen sur la validité topo, epsg source
+    polygonGeom, all_valid, source_epsg = getGeom(args.shp, args.epsg)
+
+    # on abandonne si des géometries invalides sont trouvées
+    # sauf si l'utilisateur force la découpe avec --forceinvalid
+    if not all_valid and not args.forceinvalid:
+        print("Une ou plusieurs erreurs de topologies trouvées. Abandon.")
         sys.exit(1)
-    else:
-        # geom du polygone à découper
-        polygonGeom = getGeom(sys.argv[1])
+    elif not all_valid and args.forceinvalid:
+        print("Une ou plusieurs erreurs de topologies trouvées. Forçage du découpage.")
 
-        # liste vide pour stocker les polygones < surfaceMax produits
-        goodPolygons = []
+    # liste vide pour stocker les polygones < surfaceMax produits
+    goodPolygons = []
 
-        # split des polygones, incrémentation de goodPolygons
-        splitPolygon(polygonGeom[0], int(sys.argv[2]), goodPolygons)
+    # split des polygones, incrémentation de goodPolygons
+    splitPolygon(polygonGeom[0], int(args.surface_max), goodPolygons)
 
-        # écriture du SHP de sortie avec goodPolygons
-        debug_dumpPoligons(goodPolygons)
-
-def doc():
-    print("""
-    argument 1 : shp source
-    argument 2 : surface maximale des polygones (en ha)
-
-    ex : [...].py polygone.shp 20
-    """)
+    # écriture du SHP de sortie avec goodPolygons
+    debug_dumpPoligons(goodPolygons, args.shp, source_epsg)
 
 if __name__ == '__main__':
     main()
