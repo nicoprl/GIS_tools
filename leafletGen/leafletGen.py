@@ -15,7 +15,7 @@ def main():
         parser.add_argument('destFolder', metavar='destFolder', help='path to destination folder')
         args = parser.parse_args()
 
-        config = json.load(open(args.configFile))
+        config = json.load(open(os.getcwd() + '/' + args.configFile))
         baseMaps = {"None": "emptyMap"}
         overlayMaps = {}
 
@@ -28,9 +28,12 @@ def main():
 
         mapGenerate(
             config, 
-            baseMapsBlock_html, overlayMapsBlock_html, 
-            tileLayerBlock_html, wmsBlock_html, geojsonBlock_html, 
-            args.destFolder
+            baseMapsBlock_html, 
+            overlayMapsBlock_html, 
+            tileLayerBlock_html, 
+            wmsBlock_html, 
+            geojsonBlock_html, 
+            os.getcwd() + '/' + args.destFolder
         )
 
         print(config["outputFileName"], 'generated in', args.destFolder)

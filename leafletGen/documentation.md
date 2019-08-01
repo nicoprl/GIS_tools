@@ -1,6 +1,23 @@
-# JSON config file
+# LEAFLET GEN
 
-## Map  
+## Usages
+
+```
+usage: leafletGen.py [-h] configFile destFolder
+
+Generate a simple leaflet webmap based on a JSON configuration file
+
+positional arguments:
+  configFile  path to config.json
+  destFolder  path to destination folder
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+## JSON config file
+
+### Map  
 `title`: title of the map  
 `outputFileName`: name of html file  
 `mapWidth` : map width, in pixel (px)  
@@ -15,7 +32,7 @@
 }
 ```
 
-## geojsonConfig  
+### geojsonConfig  
 `name`: name of the GeoJSON layer  
 `addToMap`: display layer by default. Boolean  
 `geojsonFilePath`: path to GeoJSON file  
@@ -33,7 +50,7 @@
 }
 ```
 
-## tileLayerConfig  
+### tileLayerConfig  
 `name`: name of the tileLayer  
 `addToMap`: display layer by default. Boolean  
 `url`: url of the tile service  
@@ -48,13 +65,13 @@
 } 
 ```
 
-## wmsConfig  
+### wmsConfig  
 `name`: name of the WMS layer  
 `addToMap`: display layer by default. Boolean  
 `url`: url of the WMS service  
 `layers`: layers to display  
 
-# Full exemple
+### Full exemple
 ```json
 {  
    "title":"Leaflet Generator - map",

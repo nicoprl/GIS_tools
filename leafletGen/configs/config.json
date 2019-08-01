@@ -58,7 +58,7 @@
       {
         "name": "Margeriaz",
         "addToMap":false,
-        "geojsonFilePath":"margeriaz.geojson",
+        "geojsonFilePath":"./data/margeriaz.geojson",
         "geojsonStyle":{
           "color": "black",
           "weight": 5,

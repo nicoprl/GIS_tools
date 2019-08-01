@@ -1,0 +1,61 @@
+{  
+    "title":"Simple polygon",
+    "outputFileName":"simple_polygon.html",
+    "mapWidth": "1000px",
+    "mapHeight": "700px",
+    "center":{  
+       "lat":45.77752086200369,
+       "lng":4.85745906829834,
+       "zoom":15
+    },
+    "geojsonConfig":[
+      {
+        "name": "simple_polygon",
+        "addToMap": true,
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.8541975021362305,
+                45.77599435251893
+              ],
+              [
+                4.85745906829834,
+                45.77599435251893
+              ],
+              [
+                4.85745906829834,
+                45.77752086200369
+              ],
+              [
+                4.8541975021362305,
+                45.77752086200369
+              ],
+              [
+                4.8541975021362305,
+                45.77599435251893
+              ]
+            ]
+          ]
+        },
+        "geojsonStyle": {
+          "color": "black",
+          "weight": 1,
+          "opacity": 1,
+          "fill": true,
+          "fillColor": "blue",
+          "fillOpacity": 0.5
+        }
+      }
+    ],
+    "tileLayerConfig":[
+      {
+        "name": "OSM",
+        "addToMap": true,
+        "url": "https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png",
+        "attribution": ""
+      }
+    ],
+    "wmsConfig": []
+ }
