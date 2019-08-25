@@ -2,11 +2,10 @@
 
 import sys
 import argparse
+import logging
 
 try:
     import fiona
-    from fiona import collection
-    from fiona.crs import from_epsg
 except ImportError as e:
     print('Error importing fiona')
     print(e)
@@ -14,12 +13,17 @@ except ImportError as e:
 
 try:
     import shapely
-    from shapely.geometry import Point, LineString, Polygon, box, mapping
-    from shapely.wkt import dumps, loads
+    from shapely.geometry import shape, box
 except ImportError as e:
     print('Error importing shapely')
     print(e)
     sys.exit(1)
+
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+log.addHandler(stream_handler)
 
 class Epsg:
     projs = {
@@ -123,11 +127,26 @@ class GetInfos():
                     distinct_values.append(value)
         return distinct_values
 
+    
+    def check_geom_validity(self):
+        invalid_count = 0
+        with fiona.open(self.inputfn) as src:
+            for key, feat in src.items():
+                properties = dict(feat["properties"])
+                geom = shape(feat["geometry"])
+                if not geom.is_valid:
+                    print("geom {0} is not valid ({1})".format(key, properties))
+                    invalid_count += 1
+        if invalid_count == 0:
+            print("No invalid geometries found")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", help="path to OGR file")
     parser.add_argument("-c", help="Coordinates (x,y). Ex: -c 45.771074,4.834324")
     parser.add_argument("-distinct", metavar="field", help="get distinct values of field")
+    parser.add_argument("-check", action="store_true")
     args = parser.parse_args()
 
     if args.f is not None:
@@ -168,7 +187,12 @@ def main():
         print('Driver: ', driver)
         print('Geom type: ', geomType)
         print('Count: ', featureCount)
-        print('Bbox: ', bbox, '\n')
+        print('Bbox: ', bbox)
+
+        if args.check:
+            myfile.check_geom_validity()
+
+        print()
 
         for key, value in champs.items():
             print(key, value)
@@ -179,6 +203,8 @@ def main():
             print("[{0}]".format(args.distinct))
             for v in myfile.get_distinct_values(champs, args.distinct):
                 print(v)
+
+        
 
 if __name__ == '__main__':
     main()
