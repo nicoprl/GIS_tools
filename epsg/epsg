@@ -111,10 +111,23 @@ class GetInfos():
                         print(e)
                         sys.exit(1)
 
+    def get_distinct_values(self, champs, champ_cible):
+        distinct_values = []
+        if not champ_cible in champs.keys():
+            print("Error, field {} not found".format(champ_cible))
+            sys.exit(1)
+        with fiona.open(self.inputfn) as src:
+            for key, feat in src.items():
+                value = feat["properties"][champ_cible]
+                if not feat["properties"][champ_cible] in distinct_values:
+                    distinct_values.append(value)
+        return distinct_values
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", help="path to OGR file")
     parser.add_argument("-c", help="Coordinates (x,y). Ex: -c 45.771074,4.834324")
+    parser.add_argument("-distinct", metavar="field", help="get distinct values of field")
     args = parser.parse_args()
 
     if args.f is not None:
@@ -159,6 +172,13 @@ def main():
 
         for key, value in champs.items():
             print(key, value)
+
+        print()
+
+        if args.distinct is not None:
+            print("[{0}]".format(args.distinct))
+            for v in myfile.get_distinct_values(champs, args.distinct):
+                print(v)
 
 if __name__ == '__main__':
     main()
