@@ -178,10 +178,14 @@ def check_geom_validity(inputfn:str) -> None:
     with fiona.open(inputfn) as src:
         for key, feat in src.items():
             properties = dict(feat["properties"])
-            geom = shape(feat["geometry"])
-            if not geom.is_valid:
-                print("geom {0} is not valid ({1})".format(key, properties))
+            if feat["geometry"] is None:
+                print("geom {0} is empty ({1})".format(key, properties))
                 invalid_count += 1
+            else:
+                geom = shape(feat["geometry"])
+                if not geom.is_valid:
+                    print("geom {0} is not valid ({1})".format(key, properties))
+                    invalid_count += 1
     if invalid_count == 0:
         print("No invalid geometries found")
 
