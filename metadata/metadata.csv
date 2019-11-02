@@ -1,6 +1,0 @@
-FICHIER,GEOM_TYPE,CHAMP,TYPE,VALEUR
-test.shp,LineString,profondeur,float:11.2,45.21
-test.shp,LineString,profondeur,float:11.2,50.0
-test.shp,LineString,profondeur,float:11.2,45.0
-test.shp,LineString,position,str:254,souterrain
-test.shp,LineString,position,str:254,aerien
