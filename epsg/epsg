@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.6
 
 import os
 import sys
@@ -14,6 +14,13 @@ except ImportError as err_import:
     sys.exit(1)
 
 try:
+    import requests
+except ImportError as err_import:
+    print("Error importing requests")
+    print(err_import)
+    sys.exit(1)
+
+try:
     import shapely
     from shapely.geometry import shape, box
 except ImportError as err_import:
@@ -25,7 +32,7 @@ except ImportError as err_import:
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.INFO)
+stream_handler.setLevel(logging.WARNING)
 log.addHandler(stream_handler)
 
 PROJS = {
@@ -56,10 +63,20 @@ def main():
     parser.add_argument("-c", metavar="coordinates", help="Coordinates (x,y). Ex: -c 4.834324,45.771074")
     parser.add_argument("-distinct", metavar="field", help="get distinct values of field")
     parser.add_argument("-check", action="store_true", help="check geometry")
+    parser.add_argument("--offline", action="store_true", help="do not use online webservice. EPSG won't be guessed from the .prj if it exists") 
     args = parser.parse_args()
 
     if args.f is not None:
-        x, y = get_center_coordinates(os.getcwd() + "/" + args.f)
+        if os.path.exists(args.f.replace('.shp', '.prj')) and not args.offline:
+            epsg_from_prj = prj2epsg(args.f.replace('.shp', '.prj'))
+            if epsg_from_prj is not None:
+                epsgs = [epsg_from_prj]
+            else:
+                x, y = get_center_coordinates(os.getcwd() + "/" + args.f)
+                epsgs = guess_epsg(PROJS, x, y)
+        else:
+            x, y = get_center_coordinates(os.getcwd() + "/" + args.f)
+            epsgs = guess_epsg(PROJS, x, y)
     elif args.c is not None:
         try:
             x = float(args.c.split(',')[0])
@@ -73,16 +90,17 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    epsgs = guess_epsg(PROJS, x, y)
-
     if len(epsgs) == 0:
         print('No match found in projs dict')
     else:
         print('Possible EPSG code(s):')
         for epsg in epsgs:
-            print('{0}: {1} ({2})'.format(
-                epsg, PROJS[epsg]["name"], PROJS[epsg]["country"]
-            ))
+            try:
+                print('{0}: {1} ({2})'.format(
+                    epsg, PROJS[epsg]["name"], PROJS[epsg]["country"]
+                ))
+            except KeyError:
+                print("EPSG {} : guessed but not found in PROJ dict").format(epsg)
 
     if args.f is not None:
         print()
@@ -108,6 +126,29 @@ def main():
                 print(v)
 
 
+def prj2epsg(prjfile):
+    try:
+        with open(prjfile, mode="r", encoding="utf-8") as prj:
+            r = requests.get(
+                "http://prj2epsg.org/search.json", 
+                params={"mode": "wkt", "terms": prj.read()}
+            )
+            if r.status_code == 200:
+                resp = r.json()
+                if resp["exact"]:
+                    epsg = resp["codes"][0]["code"]
+                    return epsg
+                else:
+                    print("prj2epsg() pas de match exact")
+                    return None
+            else:
+                print("prj2epsg() ERREUR : status_code", r.status_code)
+                return None
+    except Exception as e:
+        print("prj2epsg() ERREUR: ", e)
+        return None
+
+
 def guess_epsg(PROJS:dict, x:float , y:float) -> List[str]:
     founds = []
     for epsg, definition in PROJS.items():
@@ -122,42 +163,40 @@ def guess_epsg(PROJS:dict, x:float , y:float) -> List[str]:
 
 
 def get_center_coordinates(inputfn:str) -> Tuple[float, float]:
-    with fiona.Env():
-        try:
-            fiona.open(inputfn)
-        except fiona.errors.DriverError as err_fiona:
-            print(err_fiona)
-            sys.exit(1)
-        else:
-            with fiona.open(inputfn) as source:
-                minx, miny, maxx, maxy = source.bounds
-                polygon = box(minx, miny, maxx, maxy)
-                return polygon.centroid.x, polygon.centroid.y
+    try:
+        fiona.open(inputfn)
+    except fiona.errors.DriverError as err_fiona:
+        print(err_fiona)
+        sys.exit(1)
+    else:
+        with fiona.open(inputfn) as source:
+            minx, miny, maxx, maxy = source.bounds
+            polygon = box(minx, miny, maxx, maxy)
+            return polygon.centroid.x, polygon.centroid.y
 
 
 def get_metadata(inputfn: str) -> Tuple[int, str, Tuple[float], str, Dict[str, str], Dict[str, str]]:
-    with fiona.Env():
-        try:
-            fiona.open(inputfn)
-        except fiona.errors.DriverError as err_fiona:
-            print(err_fiona)
-            sys.exit(1)
-        else:
-            with fiona.open(inputfn) as source:
-                try:
-                    featureCount = len(source)
-                    bbox = source.bounds
-                    wkt_proj = source.crs_wkt
-                    proj4_proj = source.crs
-                    driver = source.driver
-                    meta = source.meta
-                    geomType = meta["schema"]["geometry"]
-                    champs = meta["schema"]["properties"]
+    try:
+        fiona.open(inputfn)
+    except fiona.errors.DriverError as err_fiona:
+        print(err_fiona)
+        sys.exit(1)
+    else:
+        with fiona.open(inputfn) as source:
+            try:
+                featureCount = len(source)
+                bbox = source.bounds
+                wkt_proj = source.crs_wkt
+                proj4_proj = source.crs
+                driver = source.driver
+                meta = source.meta
+                geomType = meta["schema"]["geometry"]
+                champs = meta["schema"]["properties"]
 
-                    return featureCount, geomType, bbox, driver, meta, champs
-                except Exception as e:
-                    print(e)
-                    sys.exit(1)
+                return featureCount, geomType, bbox, driver, meta, champs
+            except Exception as e:
+                print(e)
+                sys.exit(1)
 
 
 def get_distinct_values(inputfn:str, champs:dict, champ_cible:str) -> List[str]:
