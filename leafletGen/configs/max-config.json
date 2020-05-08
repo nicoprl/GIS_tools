@@ -18,7 +18,7 @@
                {  
                   "type":"Feature",
                   "properties":{  
-
+                    "adresse": "Place Carnot, Lyon"
                   },
                   "geometry":{  
                      "type":"Polygon",
@@ -46,6 +46,8 @@
                }
             ]
          },
+         "bindPopup": true,
+         "bindPopupPropertie": "adresse",
          "geojsonStyle":{  
             "color":"red",
             "weight":4,

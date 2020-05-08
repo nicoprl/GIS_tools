@@ -1,4 +1,4 @@
-#!/usr/bin/python3.5
+#!/usr/bin/python3.6
 
 import os
 import json
@@ -128,6 +128,22 @@ def geojsonBlock(config, overlayMaps):
             else:
                 geometry = geojson["geometry"]
 
+            if geojson["bindPopup"]:
+                vectorData = """
+                L.geoJson(geometry_{0}, {{
+                    style: reseauStyle_{0},
+                    onEachFeature: function (feature, layer) {{
+                        layer.bindPopup(feature.properties.{1});
+                    }}
+                }})
+                """.format(i, geojson["bindPopupPropertie"])
+            else:
+                vectorData = """
+                L.geoJson(geometry_$i, {
+                    style: reseauStyle_$i
+                })
+                """
+
             geojsonBlockContent = """
             // GeoJSON - Style
             var reseauStyle_$i = {
@@ -141,9 +157,8 @@ def geojsonBlock(config, overlayMaps):
 
             // GeoJSON - data
             var geometry_$i = $geometry
-            var vectorData_$i = L.geoJson(geometry_$i, {
-                style: reseauStyle_$i
-            })"""
+            var vectorData_$i = $vectorData
+            """
             geojsonBlockTemplate = Template(geojsonBlockContent)
             geojsonBlockCompleted = geojsonBlockTemplate.substitute(
                 i = i,
@@ -153,6 +168,7 @@ def geojsonBlock(config, overlayMaps):
                 fill = str(geojson["geojsonStyle"]["fill"]).lower(),
                 fillColor = geojson["geojsonStyle"]["fillColor"],
                 fillOpacity = geojson["geojsonStyle"]["fillOpacity"],
+                vectorData = vectorData,
                 geometry = geometry
             )
             if geojson["addToMap"]:

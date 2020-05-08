@@ -37,6 +37,8 @@ optional arguments:
 `addToMap`: display layer by default. Boolean  
 `geojsonFilePath`: path to GeoJSON file  
 `geometry`: geometry in GeoJSON format. Not to be used if geojsonFilePath is provided  
+`bindPopup`: set to true to bind a popup to each feature  
+`bindPopupPropertie`: the propertie to show when the feature is clicked  
 `geojsonStyle`: GeoJSON layer symbology  
 
 ```json
