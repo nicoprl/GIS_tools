@@ -12,8 +12,8 @@ email=
 
 about=Export symbology as SLD files for each vector layer in the current project
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/nicoprl/GIS_tools/tree/master/qgis_plugins/batch_sld_export
+repository=https://github.com/nicoprl/GIS_tools/tree/master/qgis_plugins/batch_sld_export
 # End of mandatory metadata
 
 # Recommended items:
@@ -25,7 +25,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=vector,SLD,geoserver,batch,bulk,symbology
 
-homepage=http://homepage
+homepage=https://github.com/nicoprl/GIS_tools/tree/master/qgis_plugins/batch_sld_export
 category=Plugins
 icon=icon.png
 # experimental flag
